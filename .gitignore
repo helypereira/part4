@@ -1,0 +1,30 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE Specific Files
+*~
+*.swp
+.vscode/
+.idea/
+
+# Build Artifacts & Output
+build/
+dist/
+target/
+*.log
+*.tmp
+*.bak
+*.exe
+*.dll
+*.so
+
+# Dependency Directories
+node_modules/
+vendor/
+venv/
+
+# Sensitive Configuration
+.env
+*.key
