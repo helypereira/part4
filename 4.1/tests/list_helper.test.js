@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { dummy, totalLikes } from '../utils/list_helper.js'
+import { dummy, totalLikes, favoriteBlog } from '../utils/list_helper.js'
 
 
 const listWithOneBlog = [
@@ -90,5 +90,32 @@ describe('total likes', () => {
   test('of a bigger list is calculated right', () => {
     const result = totalLikes(blogs)
     assert.strictEqual(result, 36)
+  })
+})
+
+// 4.5
+
+describe('favorite blog', () => {
+  test('of empty list is null', () => {
+    const result = favoriteBlog([])
+    assert.strictEqual(result, null)
+  })
+
+  test('when list has only one blog, returns that blog', () => {
+    const result = favoriteBlog(listWithOneBlog)
+    assert.deepStrictEqual(result, {
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      likes: 5
+    })
+  })
+
+  test('of a bigger list is the one with most likes', () => {
+    const result = favoriteBlog(blogs)
+    assert.deepStrictEqual(result, {
+      title: "Canonical string reduction",
+      author: "Edsger W. Dijkstra",
+      likes: 12
+    })
   })
 })
