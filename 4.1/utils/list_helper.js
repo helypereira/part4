@@ -45,3 +45,25 @@ export const mostBlogs = (blogs) => {
     blogs: authorCounts[topAuthor]
   }
 }
+
+// 4.7
+export const mostLikes = (blogs) => {
+  if (blogs.length === 0) {
+    return null
+  }
+  
+  const authorLikes = {}
+  
+  blogs.forEach(blog => {
+    authorLikes[blog.author] = (authorLikes[blog.author] || 0) + blog.likes
+  })
+  
+  const topAuthor = Object.keys(authorLikes).reduce((prev, current) => {
+    return authorLikes[prev] > authorLikes[current] ? prev : current
+  })
+  
+  return {
+    author: topAuthor,
+    likes: authorLikes[topAuthor]
+  }
+}
