@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { dummy, totalLikes, favoriteBlog } from '../utils/list_helper.js'
+import { dummy, totalLikes, favoriteBlog, mostBlogs } from '../utils/list_helper.js'
 
 
 const listWithOneBlog = [
@@ -116,6 +116,30 @@ describe('favorite blog', () => {
       title: "Canonical string reduction",
       author: "Edsger W. Dijkstra",
       likes: 12
+    })
+  })
+})
+
+// 4.6
+describe('most blogs', () => {
+  test('of empty list is null', () => {
+    const result = mostBlogs([])
+    assert.strictEqual(result, null)
+  })
+
+  test('when list has only one blog, returns that author', () => {
+    const result = mostBlogs(listWithOneBlog)
+    assert.deepStrictEqual(result, {
+      author: 'Edsger W. Dijkstra',
+      blogs: 1
+    })
+  })
+
+  test('of a bigger list is calculated right', () => {
+    const result = mostBlogs(blogs)
+    assert.deepStrictEqual(result, {
+      author: "Robert C. Martin",
+      blogs: 3
     })
   })
 })

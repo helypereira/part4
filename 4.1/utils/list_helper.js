@@ -8,7 +8,6 @@ export const totalLikes = (blogs) => {
 }
 
 // 4.5
-
 export const favoriteBlog = (blogs) => {
   if (blogs.length === 0) {
     return null
@@ -22,5 +21,27 @@ export const favoriteBlog = (blogs) => {
     title: favorite.title,
     author: favorite.author,
     likes: favorite.likes
+  }
+}
+
+// 4.6 
+export const mostBlogs = (blogs) => {
+  if (blogs.length === 0) {
+    return null
+  }
+  
+  const authorCounts = {}
+  
+  blogs.forEach(blog => {
+    authorCounts[blog.author] = (authorCounts[blog.author] || 0) + 1
+  })
+  
+  const topAuthor = Object.keys(authorCounts).reduce((prev, current) => {
+    return authorCounts[prev] > authorCounts[current] ? prev : current
+  })
+  
+  return {
+    author: topAuthor,
+    blogs: authorCounts[topAuthor]
   }
 }
