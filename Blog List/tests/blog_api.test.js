@@ -89,3 +89,25 @@ test('blog without content is not added', async () => {
 
   assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
 })
+
+// Exercise 4.11: Test that likes defaults to 0 when missing
+test('if likes property is missing, it defaults to 0', async () => {
+  const newBlog = {
+    title: 'Blog without likes',
+    author: 'Test Author',
+    url: 'https://example.com/no-likes'
+    // Note: deliberately omitting likes property
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  assert.strictEqual(response.body.likes, 0)
+
+  const blogsAtEnd = await blogsInDb()
+  const addedBlog = blogsAtEnd.find(blog => blog.title === 'Blog without likes')
+  assert.strictEqual(addedBlog.likes, 0)
+})
