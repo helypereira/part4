@@ -22,6 +22,14 @@ export const getBlogByID = async (req, res, next) => {
 export const createBlog = async (req, res, next) => {
     try {
         const {title, author, url, likes} = req.body
+        
+        // Validar campos requeridos
+        if (!title || !author || !url) {
+            return res.status(400).json({
+                error: 'Title, author, and URL are required'
+            })
+        }
+        
         const blog = new Blog({
             title, 
             author, 

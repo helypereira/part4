@@ -3,13 +3,18 @@ import mongoose from 'mongoose';
 import {info, error} from '../utils/logger.js'
 
 const PORT = process.env.PORT || 3003
-const MONGODB_URI = process.env.MONGODB_URI
 
+let MONGODB_URI = process.env.MONGODB_URI
+
+if (process.env.NODE_ENV === 'test') {
+  MONGODB_URI = process.env.MONGODB_URI_TEST
+}
 
 const connectDB = async () => {
   try {
     mongoose.set('strictQuery', false)
     await mongoose.connect(MONGODB_URI)
+    info('Connected to MongoDB')
   } catch (err) {
     error('Connect MongoDB ERROR', err.message)
     process.exit(1)
@@ -22,8 +27,3 @@ export default {
   MONGODB_URI,
   connectDB
 }
-
-
-// 35.148.166.229
-// almeidahely
-// yNTp9W9C8hM8p1XP
