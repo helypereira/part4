@@ -55,7 +55,7 @@ export const updateBlog = async (req, res, next) => {
             }
         )
         
-        updateBlog ? res.json(updateBlog): res.status(404).json({error: 'Blog no found.'})
+        blog ? res.json(blog): res.status(404).json({error: 'Blog no found.'})
     } catch (error) {
         next(error)
     }

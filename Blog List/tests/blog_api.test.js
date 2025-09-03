@@ -188,3 +188,71 @@ test('deleting a blog with invalid id returns 404', async () => {
   const blogsAtEnd = await blogsInDb()
   assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
 })
+
+// 4.14
+test('a blog can be updated', async () => {
+  const blogsAtStart = await blogsInDb()
+  const blogToUpdate = blogsAtStart[0]
+  
+  const updatedBlogData = {
+    title: blogToUpdate.title,
+    author: blogToUpdate.author,
+    url: blogToUpdate.url,
+    likes: blogToUpdate.likes + 1
+  }
+
+  const response = await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedBlogData)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  assert.strictEqual(response.body.likes, blogToUpdate.likes + 1)
+
+  const blogsAtEnd = await blogsInDb()
+  const updatedBlog = blogsAtEnd.find(blog => blog.id === blogToUpdate.id)
+  assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 1)
+})
+
+test('updating a blog with invalid id returns 404', async () => {
+  const invalidId = '507f1f77bcf86cd799439011'
+  
+  const updatedBlogData = {
+    title: 'Updated title',
+    author: 'Updated author',
+    url: 'https://updated.com',
+    likes: 10
+  }
+
+  await api
+    .put(`/api/blogs/${invalidId}`)
+    .send(updatedBlogData)
+    .expect(404)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('updating only likes property works correctly', async () => {
+  const blogsAtStart = await blogsInDb()
+  const blogToUpdate = blogsAtStart[0]
+  
+  const updatedLikes = blogToUpdate.likes + 5
+  
+  const updatedBlogData = {
+    title: blogToUpdate.title,
+    author: blogToUpdate.author,
+    url: blogToUpdate.url,
+    likes: updatedLikes
+  }
+
+  const response = await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedBlogData)
+    .expect(200)
+
+  assert.strictEqual(response.body.likes, updatedLikes)
+  assert.strictEqual(response.body.title, blogToUpdate.title)
+  assert.strictEqual(response.body.author, blogToUpdate.author)
+  assert.strictEqual(response.body.url, blogToUpdate.url)
+})
