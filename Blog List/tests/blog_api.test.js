@@ -112,10 +112,10 @@ test('if likes property is missing, it defaults to 0', async () => {
   assert.strictEqual(addedBlog.likes, 0)
 })
 
-// Exercise 4.12: Test that missing title or url results in 400 Bad Request
+//4.12: Test that missing title or url results in 400 Bad Request
 test('blog without title is not added and responds with 400', async () => {
   const newBlog = {
-    // title is missing
+    // title
     author: 'Test Author',
     url: 'https://example.com/no-title'
   }
@@ -133,7 +133,7 @@ test('blog without url is not added and responds with 400', async () => {
   const newBlog = {
     title: 'Blog without URL',
     author: 'Test Author'
-    // url is missing
+    // url
   }
 
   await api
@@ -147,15 +147,43 @@ test('blog without url is not added and responds with 400', async () => {
 
 test('blog without both title and url is not added and responds with 400', async () => {
   const newBlog = {
-    // title is missing
+    // title
     author: 'Test Author'
-    // url is missing
+    // url
   }
 
   await api
     .post('/api/blogs')
     .send(newBlog)
     .expect(400)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+// 4.13:deleting 
+test('a blog can be deleted', async () => {
+  const blogsAtStart = await blogsInDb()
+  const blogToDelete = blogsAtStart[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(204)
+
+  const blogsAtEnd = await blogsInDb()
+
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length - 1)
+
+  const titles = blogsAtEnd.map(r => r.title)
+  assert(!titles.includes(blogToDelete.title))
+})
+
+test('deleting a blog with invalid id returns 404', async () => {
+  const invalidId = '507f1f77bcf86cd799439011' // non-existe
+
+  await api
+    .delete(`/api/blogs/${invalidId}`)
+    .expect(404)
 
   const blogsAtEnd = await blogsInDb()
   assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
