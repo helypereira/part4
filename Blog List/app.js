@@ -1,5 +1,6 @@
 import express from 'express'
 import router from './routes/blogs.js'
+import usersRouter from './routes/users.js'
 import { info } from './utils/logger.js'
 import config from './utils/config.js'
 
@@ -14,6 +15,7 @@ app.use((req, res, next) => {
 })
 
 app.use('/api/blogs', router)
+app.use('/api/users', usersRouter)
 
 app.use((error, req, res, next) => {
   console.error(error.message)
@@ -22,6 +24,8 @@ app.use((error, req, res, next) => {
     return res.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     return res.status(400).json({ error: error.message })
+  } else if (error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')) {
+    return res.status(400).json({ error: 'expected `username` to be unique' })
   }
   
   res.status(500).json({ error: 'Something went wrong!' })
