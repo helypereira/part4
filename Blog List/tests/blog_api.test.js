@@ -111,3 +111,52 @@ test('if likes property is missing, it defaults to 0', async () => {
   const addedBlog = blogsAtEnd.find(blog => blog.title === 'Blog without likes')
   assert.strictEqual(addedBlog.likes, 0)
 })
+
+// Exercise 4.12: Test that missing title or url results in 400 Bad Request
+test('blog without title is not added and responds with 400', async () => {
+  const newBlog = {
+    // title is missing
+    author: 'Test Author',
+    url: 'https://example.com/no-title'
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('blog without url is not added and responds with 400', async () => {
+  const newBlog = {
+    title: 'Blog without URL',
+    author: 'Test Author'
+    // url is missing
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('blog without both title and url is not added and responds with 400', async () => {
+  const newBlog = {
+    // title is missing
+    author: 'Test Author'
+    // url is missing
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
