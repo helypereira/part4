@@ -43,10 +43,10 @@ test('blog posts have id property instead of _id', async () => {
   
   const blogs = response.body
   
-  // Verificar que cada blog tenga la propiedad 'id'
+  // 4.9 to verify that each blog has the 'id' property
   blogs.forEach(blog => {
     assert(blog.id)
-    assert(!blog._id) // No debería tener _id
+    assert(!blog._id)
   })
 })
 
