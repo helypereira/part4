@@ -3,7 +3,7 @@ import User from '../models/user.js'
 
 export const getAllUsers = async (req, res, next) => {
     try {
-        const users = await User.find({})
+        const users = await User.find({}).populate('blogs', { url: 1, title: 1, author: 1 })
         res.json(users)
     } catch (error) {
         next(error)

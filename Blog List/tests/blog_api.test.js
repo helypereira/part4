@@ -2,14 +2,37 @@ import { test, after, beforeEach } from 'node:test'
 import assert from 'node:assert'
 import mongoose from 'mongoose'
 import supertest from 'supertest'
+import bcrypt from 'bcrypt'
 import app from '../app.js'
 import Blog from '../models/blog.js'
+import User from '../models/user.js'
 import { initialBlogs, blogsInDb } from './test_helper.js'
 
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-    await Blog.insertMany(initialBlogs)
+    await User.deleteMany({})
+    
+    // Create a test user first
+    const passwordHash = await bcrypt.hash('testpassword', 10)
+    const user = new User({ 
+        username: 'testuser', 
+        name: 'Test User',
+        passwordHash 
+    })
+    const savedUser = await user.save()
+    
+    // Create blogs and associate them with the user
+    const blogsWithUser = initialBlogs.map(blog => ({
+        ...blog,
+        user: savedUser._id
+    }))
+    
+    const savedBlogs = await Blog.insertMany(blogsWithUser)
+    
+    // Update user with blog references
+    savedUser.blogs = savedBlogs.map(blog => blog._id)
+    await savedUser.save()
 })
 
 const api = supertest(app)
