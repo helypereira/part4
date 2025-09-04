@@ -4,11 +4,13 @@ import usersRouter from './routes/users.js'
 import loginRouter from './controllers/login.js'
 import { info } from './utils/logger.js'
 import config from './utils/config.js'
+import tokenExtractor from './middleware/tokenExtractor.js'
 
 config.connectDB()
 
 const app = express()
 app.use(express.json())
+app.use(tokenExtractor)
 
 app.use((req, res, next) => {
   info(`${req.method} ${req.path}`)

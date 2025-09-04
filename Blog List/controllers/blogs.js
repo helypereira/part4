@@ -2,14 +2,6 @@ import Blog from '../models/blog.js'
 import User from '../models/user.js'
 import jwt from 'jsonwebtoken'
 
-const getTokenFrom = request => {
-    const authorization = request.get('authorization')
-    if (authorization && authorization.startsWith('Bearer ')) {
-        return authorization.replace('Bearer ', '')
-    }
-    return null
-}
-
 export const getAllBlogs = async (req, res, next) => {
     try {
         const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
@@ -39,12 +31,12 @@ export const createBlog = async (req, res, next) => {
             })
         }
         
-        const token = getTokenFrom(req)
-        if (!token) {
+        // Using request.token from tokenExtractor middleware
+        if (!req.token) {
             return res.status(401).json({ error: 'token missing' })
         }
         
-        const decodedToken = jwt.verify(token, process.env.SECRET)
+        const decodedToken = jwt.verify(req.token, process.env.SECRET)
         if (!decodedToken.id) {
             return res.status(401).json({ error: 'token invalid' })
         }
