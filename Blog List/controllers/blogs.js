@@ -1,5 +1,14 @@
 import Blog from '../models/blog.js'
 import User from '../models/user.js'
+import jwt from 'jsonwebtoken'
+
+const getTokenFrom = request => {
+    const authorization = request.get('authorization')
+    if (authorization && authorization.startsWith('Bearer ')) {
+        return authorization.replace('Bearer ', '')
+    }
+    return null
+}
 
 export const getAllBlogs = async (req, res, next) => {
     try {
@@ -30,13 +39,19 @@ export const createBlog = async (req, res, next) => {
             })
         }
         
-        // Find the first user in the database to assign as creator
-        const user = await User.findOne({})
+        const token = getTokenFrom(req)
+        if (!token) {
+            return res.status(401).json({ error: 'token missing' })
+        }
         
+        const decodedToken = jwt.verify(token, process.env.SECRET)
+        if (!decodedToken.id) {
+            return res.status(401).json({ error: 'token invalid' })
+        }
+        
+        const user = await User.findById(decodedToken.id)
         if (!user) {
-            return res.status(400).json({
-                error: 'No users found in the database'
-            })
+            return res.status(401).json({ error: 'user not found' })
         }
         
         const blog = new Blog({
@@ -49,14 +64,9 @@ export const createBlog = async (req, res, next) => {
         
         const savedBlog = await blog.save()
         
-        // Add the blog to the user's blogs array - more safely
-        try {
-            user.blogs = user.blogs.concat(savedBlog._id)
-            await user.save()
-        } catch (error) {
-            // If user save fails, we still return the blog
-            console.log('Warning: Could not update user blogs array:', error.message)
-        }
+
+        user.blogs = user.blogs.concat(savedBlog._id)
+        await user.save()
         
         res.status(201).json(savedBlog)
     } catch (error) {

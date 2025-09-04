@@ -6,33 +6,34 @@ import bcrypt from 'bcrypt'
 import app from '../app.js'
 import Blog from '../models/blog.js'
 import User from '../models/user.js'
-import { initialBlogs, blogsInDb } from './test_helper.js'
+import { initialBlogs, blogsInDb, getTokenForUser } from './test_helper.js'
 
+let token
+let testUser
 
 beforeEach(async () => {
     await Blog.deleteMany({})
     await User.deleteMany({})
     
-    // Create a test user first
     const passwordHash = await bcrypt.hash('testpassword', 10)
     const user = new User({ 
         username: 'testuser', 
         name: 'Test User',
         passwordHash 
     })
-    const savedUser = await user.save()
+    testUser = await user.save()
+    token = getTokenForUser(testUser)
     
-    // Create blogs and associate them with the user
     const blogsWithUser = initialBlogs.map(blog => ({
         ...blog,
-        user: savedUser._id
+        user: testUser._id
     }))
     
     const savedBlogs = await Blog.insertMany(blogsWithUser)
     
     // Update user with blog references
-    savedUser.blogs = savedBlogs.map(blog => blog._id)
-    await savedUser.save()
+    testUser.blogs = savedBlogs.map(blog => blog._id)
+    await testUser.save()
 })
 
 const api = supertest(app)
@@ -66,7 +67,7 @@ test('blog posts have id property instead of _id', async () => {
   
   const blogs = response.body
   
-  // 4.9 to verify that each blog has the 'id' property
+  // 4.9 
   blogs.forEach(blog => {
     assert(blog.id)
     assert(!blog._id)
@@ -84,6 +85,7 @@ test('a valid blog can be added ', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', `Bearer ${token}`)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
@@ -106,6 +108,7 @@ test('blog without content is not added', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', `Bearer ${token}`)
     .expect(400)
 
   const blogsAtEnd = await blogsInDb()
@@ -125,6 +128,7 @@ test('if likes property is missing, it defaults to 0', async () => {
   const response = await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', `Bearer ${token}`)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
@@ -135,7 +139,7 @@ test('if likes property is missing, it defaults to 0', async () => {
   assert.strictEqual(addedBlog.likes, 0)
 })
 
-//4.12: Test that missing title or url results in 400 Bad Request
+//4.12
 test('blog without title is not added and responds with 400', async () => {
   const newBlog = {
     // title
@@ -146,6 +150,7 @@ test('blog without title is not added and responds with 400', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', `Bearer ${token}`)
     .expect(400)
 
   const blogsAtEnd = await blogsInDb()
@@ -162,6 +167,7 @@ test('blog without url is not added and responds with 400', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', `Bearer ${token}`)
     .expect(400)
 
   const blogsAtEnd = await blogsInDb()
@@ -178,6 +184,7 @@ test('blog without both title and url is not added and responds with 400', async
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', `Bearer ${token}`)
     .expect(400)
 
   const blogsAtEnd = await blogsInDb()
@@ -278,4 +285,40 @@ test('updating only likes property works correctly', async () => {
   assert.strictEqual(response.body.title, blogToUpdate.title)
   assert.strictEqual(response.body.author, blogToUpdate.author)
   assert.strictEqual(response.body.url, blogToUpdate.url)
+})
+
+// 4.19
+test('creating a blog fails with status 401 if token is not provided', async () => {
+  const newBlog = {
+    title: 'Blog without token',
+    author: 'Test Author',
+    url: 'https://example.com/no-token'
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('creating a blog fails with status 401 if token is invalid', async () => {
+  const newBlog = {
+    title: 'Blog with invalid token',
+    author: 'Test Author',
+    url: 'https://example.com/invalid-token'
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .set('Authorization', 'Bearer invalid_token')
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
 })

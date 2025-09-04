@@ -1,5 +1,6 @@
 import Blog from '../models/blog.js'
 import User from '../models/user.js'
+import jwt from 'jsonwebtoken'
 
 const initialBlogs = [{
     title: "First blog",
@@ -22,4 +23,12 @@ const usersInDb = async () => {
     return users.map(u => u.toJSON())
 }
 
-export { initialBlogs, blogsInDb, usersInDb }
+const getTokenForUser = (user) => {
+    const userForToken = {
+        username: user.username,
+        id: user._id,
+    }
+    return jwt.sign(userForToken, process.env.SECRET)
+}
+
+export { initialBlogs, blogsInDb, usersInDb, getTokenForUser }
