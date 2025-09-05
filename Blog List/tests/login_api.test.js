@@ -14,8 +14,8 @@ describe('when there is initially one user in db', () => {
 
     const passwordHash = await bcrypt.hash('secret', 10)
     const user = new User({ 
-      username: 'root', 
-      name: 'Root User',
+      username: 'logintest', 
+      name: 'Login Test User',
       passwordHash 
     })
 
@@ -24,7 +24,7 @@ describe('when there is initially one user in db', () => {
 
   test('login succeeds with valid credentials', async () => {
     const loginData = {
-      username: 'root',
+      username: 'logintest',
       password: 'secret'
     }
 
@@ -35,13 +35,13 @@ describe('when there is initially one user in db', () => {
       .expect('Content-Type', /application\/json/)
 
     assert(response.body.token)
-    assert.strictEqual(response.body.username, 'root')
-    assert.strictEqual(response.body.name, 'Root User')
+    assert.strictEqual(response.body.username, 'logintest')
+    assert.strictEqual(response.body.name, 'Login Test User')
   })
 
   test('login fails with invalid credentials', async () => {
     const loginData = {
-      username: 'root',
+      username: 'logintest',
       password: 'wrongpassword'
     }
 

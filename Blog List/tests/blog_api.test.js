@@ -31,7 +31,6 @@ beforeEach(async () => {
     
     const savedBlogs = await Blog.insertMany(blogsWithUser)
     
-    // Update user with blog references
     testUser.blogs = savedBlogs.map(blog => blog._id)
     await testUser.save()
 })
@@ -287,6 +286,26 @@ test('updating only likes property works correctly', async () => {
   assert.strictEqual(response.body.title, blogToUpdate.title)
   assert.strictEqual(response.body.author, blogToUpdate.author)
   assert.strictEqual(response.body.url, blogToUpdate.url)
+})
+
+//4.23:
+test('adding a blog without token returns 401 Unauthorized', async () => {
+  const newBlog = {
+    title: 'Test blog for 401',
+    author: 'Test Author',
+    url: 'https://example.com/test-401'
+  }
+
+  const result = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  assert(result.body.error.includes('token'))
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
 })
 
 // 4.19

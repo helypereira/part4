@@ -14,7 +14,7 @@ describe('when there is initially one user in db', () => {
     await User.deleteMany({})
 
     const passwordHash = await bcrypt.hash('sekret', 10)
-    const user = new User({ username: 'root', passwordHash })
+    const user = new User({ username: 'usertest', passwordHash })
 
     await user.save()
   })
@@ -45,7 +45,7 @@ describe('when there is initially one user in db', () => {
     const usersAtStart = await usersInDb()
 
     const newUser = {
-      username: 'root',
+      username: 'usertest',
       name: 'Superuser',
       password: 'salainen',
     }
@@ -150,7 +150,7 @@ describe('viewing users', () => {
     await User.deleteMany({})
 
     const passwordHash = await bcrypt.hash('sekret', 10)
-    const user = new User({ username: 'root', passwordHash })
+    const user = new User({ username: 'viewtest', passwordHash })
 
     await user.save()
   })
@@ -166,7 +166,7 @@ describe('viewing users', () => {
     const response = await api.get('/api/users')
 
     assert.strictEqual(response.body.length, 1)
-    assert.strictEqual(response.body[0].username, 'root')
+    assert.strictEqual(response.body[0].username, 'viewtest')
     assert(!response.body[0].passwordHash) 
   })
 })
