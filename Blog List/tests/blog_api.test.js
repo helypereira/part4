@@ -198,6 +198,7 @@ test('a blog can be deleted', async () => {
 
   await api
     .delete(`/api/blogs/${blogToDelete.id}`)
+    .set('Authorization', `Bearer ${token}`)
     .expect(204)
 
   const blogsAtEnd = await blogsInDb()
@@ -213,6 +214,7 @@ test('deleting a blog with invalid id returns 404', async () => {
 
   await api
     .delete(`/api/blogs/${invalidId}`)
+    .set('Authorization', `Bearer ${token}`)
     .expect(404)
 
   const blogsAtEnd = await blogsInDb()
@@ -317,6 +319,54 @@ test('creating a blog fails with status 401 if token is invalid', async () => {
     .send(newBlog)
     .set('Authorization', 'Bearer invalid_token')
     .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('deleting a blog fails with status 401 if token is not provided', async () => {
+  const blogsAtStart = await blogsInDb()
+  const blogToDelete = blogsAtStart[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('deleting a blog fails with status 401 if token is invalid', async () => {
+  const blogsAtStart = await blogsInDb()
+  const blogToDelete = blogsAtStart[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .set('Authorization', 'Bearer invalid_token')
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+})
+
+test('deleting a blog fails with status 403 if user is not the creator', async () => {
+  const anotherUser = new User({
+    username: 'anotheruser',
+    name: 'Another User',
+    passwordHash: await bcrypt.hash('password', 10)
+  })
+  await anotherUser.save()
+  const anotherToken = getTokenForUser(anotherUser)
+
+  const blogsAtStart = await blogsInDb()
+  const blogToDelete = blogsAtStart[0] 
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .set('Authorization', `Bearer ${anotherToken}`)
+    .expect(403)
     .expect('Content-Type', /application\/json/)
 
   const blogsAtEnd = await blogsInDb()
